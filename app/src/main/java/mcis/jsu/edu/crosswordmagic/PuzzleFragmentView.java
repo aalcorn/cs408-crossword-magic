@@ -1,17 +1,22 @@
 package mcis.jsu.edu.crosswordmagic;
 
+import android.app.AlertDialog;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.support.v7.widget.GridLayout;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
 
 import java.util.HashMap;
 
@@ -65,8 +70,8 @@ public class PuzzleFragmentView extends Fragment implements View.OnClickListener
 
         int gridSize = Math.max(puzzleHeight, puzzleWidth);
         int squareSizeDp = ( Math.min(fragmentHeightDp - overhead, fragmentWidthDp) / gridSize );
-        int letterSizeDp = (int)( squareSizeDp * 0.75 );
-        int numberSizeDp = (int)( squareSizeDp * 0.2 );
+        int letterSizeDp = (int)( squareSizeDp * 0.35 );
+        int numberSizeDp = (int)( squareSizeDp * 0.15 );
 
         /* Acquire GridLayout Container References */
 
@@ -208,13 +213,13 @@ public class PuzzleFragmentView extends Fragment implements View.OnClickListener
 
         /* Compute Row/Column/Index from Tag */
 
-        int row = Integer.parseInt(tag.substring(6, 8));
-        int col = Integer.parseInt(tag.substring(8));
-        int index = (row * model.getPuzzleHeight()) + col;
+        final int row = Integer.parseInt(tag.substring(6, 8));
+        final int col = Integer.parseInt(tag.substring(8));
+        final int index = (row * model.getPuzzleHeight()) + col;
 
         /* Get Box Numbers from Model */
 
-        Integer[][] numbers = model.getNumbers();
+        final Integer[][] numbers = model.getNumbers();
 
         /* Was a number clicked?  If so, display it in a Toast */
 
@@ -222,6 +227,47 @@ public class PuzzleFragmentView extends Fragment implements View.OnClickListener
 
             Toast toast=Toast.makeText(getContext(), "You have just tapped Square " + numbers[row][col], Toast.LENGTH_SHORT);
             toast.show();
+
+            //get the input from the user using an alertdialog box
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            AlertDialog alertDialog = builder.create();
+
+            alertDialog.show();
+
+            final EditText input = new EditText(getActivity());
+            input.setInputType(InputType.TYPE_CLASS_TEXT);
+            builder.setView(input);
+            // Set up the buttons
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    String userInput = input.getText().toString();
+                    //get the words from the box they clicked on
+
+                    String acrossWord = model.getWord(numbers[row][col] +"A");
+                    String downWord = model.getWord(numbers[row][col] + "D");
+
+                    if (userInput.equals(acrossWord)) {
+                        model.addWordToGrid(numbers[row][col] + "A");
+                    }
+                    else if (userInput.equals(downWord)) {
+                        model.addWordToGrid(numbers[row][col] + "D");
+                    }
+                }
+            });
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+
+            builder.show();
+
+
+
+
+
 
             /* Add an "X" to Clicked Square */
 

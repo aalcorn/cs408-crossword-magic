@@ -4,6 +4,7 @@ import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.ViewModel;
 import android.content.Context;
 import android.util.Log;
+import android.widget.*;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -137,8 +138,29 @@ public class CrosswordMagicViewModel extends ViewModel {
             // Word object to the "wordMap" hash map; for the key names, use the box number
             // followed by the direction (for example, "16D" for Box # 16, Down).
 
-            puzzleHeight.setValue(15); // DELETE THIS!
-            puzzleWidth.setValue(15); // DELETE THIS!
+            String[] stringArray = br.readLine().trim().split("\t");
+            puzzleHeight.setValue(Integer.parseInt(stringArray[0]));
+            puzzleWidth.setValue(Integer.parseInt(stringArray[1]));
+
+            Log.d(stringArray[0], "Puzzle height");
+
+            while(br.ready()) {
+                String currentLine = br.readLine();
+                stringArray = currentLine.trim().split("\t");
+                Word newWord = new Word(stringArray);
+                //find the key and then put them in the hashmap
+                String key = stringArray[2] + stringArray[3];
+                wordMap.put(key , newWord);
+                String clueString = stringArray[2] + ": " + stringArray[5] + "\n";
+                if(stringArray[3].charAt(0) == 'A') {
+                    aString.append(clueString);
+                }
+                else if (stringArray[3].charAt(0) == 'D'){
+                    dString.append(clueString);
+                }
+            }
+            //Log.d("Astring", );
+            //*/
 
         } catch (Exception e) {}
 
@@ -162,6 +184,22 @@ public class CrosswordMagicViewModel extends ViewModel {
             Word w = e.getValue();
 
             // INSERT YOUR CODE HERE
+            int row = w.getRow();
+            int col = w.getColumn();
+            String word = w.getWord();
+            String dir = w.getDirection();
+            aNumbers[row][col] = w.getBox();
+            for (int i = 0; i < word.length(); i++) {
+                char c = word.charAt(i);
+                aLetters[row][col] = ' ';
+                //aLetters[row][col] = c;
+                if (dir.equals("A")) {
+                    ++col;
+                }
+                else if (dir.equals("D")) {
+                    ++row;
+                }//*/
+            }
 
         }
 
@@ -170,4 +208,47 @@ public class CrosswordMagicViewModel extends ViewModel {
 
     }
 
+    public String getWord(String key) {
+        Character[][] aLetters = this.getLetters();
+        Integer[][] aNumbers = this.getNumbers();
+        HashMap<String, Word> map = this.getWords();
+
+        return map.get(key).getWord();
+
+
+    }
+
+    public void addWordToGrid(String key) {
+        Integer[][] aNumbers = this.getNumbers();
+        Character[][] aLetters = this.getLetters();
+        HashMap<String, Word> map = this.getWords();
+
+        String number = Character.toString(key.charAt(0)) + Character.toString(key.charAt(1));
+        int row = 0;
+        int col = 0;
+        char dir = key.charAt(2);
+        String word = map.get(key).getWord();
+
+        for(int i = 0; i > this.getPuzzleHeight();i++) {
+            for(int j = 0; j > this.getPuzzleWidth();j++) {
+                //see if it's the same and then make i the row and j the column
+                if (aNumbers[i][j].equals(number)) {
+                    row = i;
+                    col = j;
+                }
+            }
+        }
+
+        if (dir == 'A') {
+            for(int k = 0; k > word.length(); k++) {
+                aLetters[row][col + k] = word.charAt(k);
+            }
+        }
+        else {
+            for(int l = 0; l > word.length(); l++) {
+                aLetters[row + l][col] = word.charAt(l);
+            }
+        }
+
+    }
 }
